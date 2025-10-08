@@ -581,6 +581,363 @@ with tab4:
     with col2:
         st.warning("**Important Risk Factors:**\n- High glucose levels\n- Elevated BMI\n- Genetic predisposition (DPF)")
 
+# PERSONALIZED MEAL SUGGESTIONS
+st.markdown("---")
+st.markdown('<h2 class="sub-header">🍽️ Personalized Meal Recommendations</h2>', unsafe_allow_html=True)
+
+def get_meal_recommendations(user_data, prediction_result):
+    """Generate personalized meal recommendations based on user health data"""
+    
+    # Extract user values
+    glucose = user_data['Glucose'].iloc[0]
+    bmi = user_data['BMI'].iloc[0]
+    age = user_data['Age'].iloc[0]
+    pregnancies = user_data['Pregnancies'].iloc[0]
+    
+    # Determine risk category
+    is_high_risk = prediction_result[0] == 1
+    is_high_glucose = glucose > 140
+    is_overweight = bmi >= 25
+    is_senior = age >= 60
+    is_pregnant = pregnancies > 0
+    
+    # Calculate daily nutritional needs
+    # Basic calorie calculation (Harris-Benedict equation approximation)
+    if is_overweight:
+        daily_calories = 1500 - 1800  # Weight loss range
+    elif is_senior:
+        daily_calories = 1800 - 2000  # Moderate activity
+    else:
+        daily_calories = 2000 - 2200  # Normal range
+    
+    # Carb recommendations (45-65% of calories, but lower for diabetics)
+    if is_high_risk or is_high_glucose:
+        carb_percentage = 40  # Lower carbs for diabetics
+    else:
+        carb_percentage = 50  # Moderate carbs
+    
+    daily_carbs = (daily_calories * carb_percentage // 100) // 4  # 4 calories per gram of carbs
+    
+    return daily_calories, daily_carbs, is_high_risk, is_high_glucose, is_overweight
+
+# Get recommendations
+daily_calories, daily_carbs, is_high_risk, is_high_glucose, is_overweight = get_meal_recommendations(user_data, user_result)
+
+# Display nutritional targets
+st.markdown("### 📊 Your Daily Nutritional Targets")
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.metric("Daily Calories", f"{daily_calories}", help="Recommended daily caloric intake")
+with col2:
+    st.metric("Carbohydrates", f"{daily_carbs}g", help="Daily carbohydrate limit")
+with col3:
+    protein_grams = int(daily_calories * 0.20 // 4)  # 20% of calories from protein
+    st.metric("Protein", f"{protein_grams}g", help="Daily protein requirement")
+with col4:
+    fiber_grams = 25 if user_data['Age'].iloc[0] < 50 else 21
+    st.metric("Fiber", f"{fiber_grams}g", help="Daily fiber recommendation")
+
+# Meal categories and suggestions
+meal_suggestions = {
+    "🌅 Breakfast": {
+        "healthy": [
+            "🥣 Steel-cut oatmeal with berries and nuts (45g carbs)",
+            "🍳 Vegetable omelet with whole grain toast (35g carbs)",
+            "🥑 Avocado toast on whole grain bread (40g carbs)",
+            "🥛 Greek yogurt with almonds and cinnamon (25g carbs)",
+            "🥞 Protein pancakes with sugar-free syrup (30g carbs)"
+        ],
+        "diabetic": [
+            "🥚 Scrambled eggs with spinach and cheese (8g carbs)",
+            "🥑 Avocado and egg bowl (12g carbs)",
+            "🧀 Cottage cheese with cucumber slices (10g carbs)",
+            "🥜 Almond flour pancakes with berries (15g carbs)",
+            "🥬 Green smoothie with protein powder (18g carbs)"
+        ]
+    },
+    "🌞 Lunch": {
+        "healthy": [
+            "🥗 Quinoa salad with grilled chicken (50g carbs)",
+            "🍲 Lentil soup with whole grain roll (55g carbs)",
+            "🐟 Grilled salmon with sweet potato (45g carbs)",
+            "🌯 Turkey and hummus wrap (48g carbs)",
+            "🍜 Brown rice bowl with vegetables (52g carbs)"
+        ],
+        "diabetic": [
+            "🥗 Large salad with grilled protein (20g carbs)",
+            "🥒 Cucumber chicken salad (15g carbs)",
+            "🐟 Baked fish with roasted vegetables (25g carbs)",
+            "🥩 Lean beef with cauliflower rice (18g carbs)",
+            "🦐 Shrimp stir-fry with zucchini noodles (22g carbs)"
+        ]
+    },
+    "🌆 Dinner": {
+        "healthy": [
+            "🍗 Grilled chicken with quinoa and vegetables (50g carbs)",
+            "🐟 Baked cod with brown rice pilaf (48g carbs)",
+            "🥩 Lean beef stir-fry with brown rice (52g carbs)",
+            "🍲 Turkey chili with cornbread (45g carbs)",
+            "🍝 Whole wheat pasta with marinara sauce (55g carbs)"
+        ],
+        "diabetic": [
+            "🍗 Herb-roasted chicken with green vegetables (20g carbs)",
+            "🐟 Grilled salmon with asparagus (15g carbs)",
+            "🥩 Steak with mushrooms and spinach (18g carbs)",
+            "🦃 Turkey meatballs with zucchini noodles (25g carbs)",
+            "🥬 Stuffed bell peppers with ground turkey (22g carbs)"
+        ]
+    },
+    "🍎 Snacks": {
+        "healthy": [
+            "🍎 Apple with almond butter (25g carbs)",
+            "🥜 Mixed nuts and dried fruit (20g carbs)",
+            "🍓 Greek yogurt with berries (18g carbs)",
+            "🥨 Whole grain crackers with hummus (22g carbs)",
+            "🥕 Carrots with peanut butter (15g carbs)"
+        ],
+        "diabetic": [
+            "🥜 Handful of almonds (6g carbs)",
+            "🧀 Cheese with cucumber slices (8g carbs)",
+            "🥚 Hard-boiled egg (2g carbs)",
+            "🥑 Half avocado with salt (4g carbs)",
+            "🥒 Celery with cream cheese (5g carbs)"
+        ]
+    }
+}
+
+# Display meal suggestions in tabs
+meal_tab1, meal_tab2, meal_tab3 = st.tabs(["📋 Today's Menu", "🍳 Recipe Ideas", "💡 Nutrition Tips"])
+
+with meal_tab1:
+    st.markdown("### Recommended Meals for You")
+    
+    # Choose meal category based on health status
+    meal_category = "diabetic" if (is_high_risk or is_high_glucose) else "healthy"
+    
+    if is_high_risk or is_high_glucose:
+        st.warning("⚠️ **Diabetic-Friendly Menu** - Lower carbohydrate options recommended")
+    else:
+        st.success("✅ **Balanced Healthy Menu** - Moderate carbohydrate options")
+    
+    for meal_time, suggestions in meal_suggestions.items():
+        st.markdown(f"#### {meal_time}")
+        selected_meals = suggestions[meal_category]
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"• {selected_meals[0]}")
+            st.write(f"• {selected_meals[1]}")
+        with col2:
+            st.write(f"• {selected_meals[2]}")
+        
+        st.markdown("---")
+
+with meal_tab2:
+    st.markdown("### 👨‍🍳 Quick Recipe Ideas")
+    
+    # Sample recipes based on health status
+    if is_high_risk or is_high_glucose:
+        st.markdown("#### 🥗 Diabetic-Friendly Recipes")
+        
+        recipe_col1, recipe_col2 = st.columns(2)
+        
+        with recipe_col1:
+            st.markdown("""
+            **🐟 Lemon Herb Baked Salmon**
+            - 6oz salmon fillet
+            - 2 cups steamed broccoli
+            - 1 tbsp olive oil
+            - Lemon juice & herbs
+            - *Carbs: 12g | Protein: 40g*
+            """)
+            
+            st.markdown("""
+            **🥗 Chicken Caesar Salad**
+            - 5oz grilled chicken breast
+            - 3 cups romaine lettuce
+            - 2 tbsp Caesar dressing
+            - Parmesan cheese
+            - *Carbs: 8g | Protein: 42g*
+            """)
+        
+        with recipe_col2:
+            st.markdown("""
+            **🍳 Veggie Scramble**
+            - 3 large eggs
+            - 1 cup mixed vegetables
+            - 1 oz cheese
+            - 1 tbsp olive oil
+            - *Carbs: 10g | Protein: 25g*
+            """)
+            
+            st.markdown("""
+            **🦐 Zucchini Noodle Stir-fry**
+            - 6oz shrimp
+            - 2 medium zucchini (spiralized)
+            - Mixed bell peppers
+            - Garlic & ginger
+            - *Carbs: 15g | Protein: 35g*
+            """)
+    
+    else:
+        st.markdown("#### 🍽️ Balanced Healthy Recipes")
+        
+        recipe_col1, recipe_col2 = st.columns(2)
+        
+        with recipe_col1:
+            st.markdown("""
+            **🍚 Quinoa Power Bowl**
+            - 3/4 cup cooked quinoa
+            - 4oz grilled chicken
+            - Mixed roasted vegetables
+            - 2 tbsp tahini dressing
+            - *Carbs: 45g | Protein: 35g*
+            """)
+            
+            st.markdown("""
+            **🍝 Whole Wheat Pasta Primavera**
+            - 1.5 cups whole wheat pasta
+            - Seasonal vegetables
+            - 3oz lean protein
+            - Olive oil & herbs
+            - *Carbs: 52g | Protein: 28g*
+            """)
+        
+        with recipe_col2:
+            st.markdown("""
+            **🥞 Protein Pancakes**
+            - 1/2 cup oat flour
+            - 2 eggs + 1 egg white
+            - 1/4 cup Greek yogurt
+            - 1/2 cup berries
+            - *Carbs: 35g | Protein: 25g*
+            """)
+            
+            st.markdown("""
+            **🌯 Turkey & Hummus Wrap**
+            - Whole grain tortilla
+            - 4oz sliced turkey
+            - 3 tbsp hummus
+            - Fresh vegetables
+            - *Carbs: 48g | Protein: 30g*
+            """)
+
+with meal_tab3:
+    st.markdown("### 💡 Personalized Nutrition Tips")
+    
+    tip_col1, tip_col2 = st.columns(2)
+    
+    with tip_col1:
+        st.markdown("#### 🎯 For Your Health Profile:")
+        
+        if is_high_risk or is_high_glucose:
+            st.info("""
+            **Diabetes Management Tips:**
+            • Choose complex carbs over simple sugars
+            • Eat protein with each meal
+            • Monitor portion sizes carefully
+            • Space meals evenly throughout the day
+            • Stay hydrated with water
+            """)
+        
+        if is_overweight:
+            st.warning("""
+            **Weight Management:**
+            • Focus on portion control
+            • Increase fiber intake
+            • Choose lean proteins
+            • Limit processed foods
+            • Include physical activity daily
+            """)
+        
+        if user_data['Age'].iloc[0] >= 60:
+            st.info("""
+            **Senior Nutrition:**
+            • Ensure adequate calcium intake
+            • Focus on nutrient-dense foods
+            • Stay well hydrated
+            • Consider vitamin D supplementation
+            • Maintain regular meal times
+            """)
+    
+    with tip_col2:
+        st.markdown("#### 🍽️ General Guidelines:")
+        
+        st.success("""
+        **Healthy Eating Principles:**
+        • Fill half your plate with vegetables
+        • Choose whole grains over refined
+        • Include healthy fats (nuts, avocado, olive oil)
+        • Limit added sugars and sodium
+        • Practice mindful eating
+        """)
+        
+        st.markdown("#### 🥤 Hydration Guide:")
+        water_needs = 8 + (user_data['Age'].iloc[0] // 10)  # Base + age factor
+        st.write(f"💧 **Daily Water Goal:** {water_needs} glasses")
+        st.write("• Drink water before, during, and after meals")
+        st.write("• Limit sugary beverages")
+        st.write("• Herbal teas count toward fluid intake")
+
+# Meal planning tools
+st.markdown("---")
+st.markdown("### 📅 Weekly Meal Planning Assistant")
+
+if st.button("🗓️ Generate 7-Day Meal Plan"):
+    st.success("📋 **Your personalized 7-day meal plan has been generated!**")
+    
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    meal_category = "diabetic" if (is_high_risk or is_high_glucose) else "healthy"
+    
+    for i, day in enumerate(days):
+        with st.expander(f"📅 {day}"):
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.write("**🌅 Breakfast:**")
+                breakfast_idx = i % len(meal_suggestions["🌅 Breakfast"][meal_category])
+                st.write(meal_suggestions["🌅 Breakfast"][meal_category][breakfast_idx])
+            
+            with col2:
+                st.write("**🌞 Lunch:**")
+                lunch_idx = i % len(meal_suggestions["🌞 Lunch"][meal_category])
+                st.write(meal_suggestions["🌞 Lunch"][meal_category][lunch_idx])
+            
+            with col3:
+                st.write("**🌆 Dinner:**")
+                dinner_idx = i % len(meal_suggestions["🌆 Dinner"][meal_category])
+                st.write(meal_suggestions["🌆 Dinner"][meal_category][dinner_idx])
+            
+            st.write("**🍎 Snack:**")
+            snack_idx = i % len(meal_suggestions["🍎 Snacks"][meal_category])
+            st.write(meal_suggestions["🍎 Snacks"][meal_category][snack_idx])
+
+# Shopping list generator
+if st.button("🛒 Generate Shopping List"):
+    st.success("🛍️ **Smart Shopping List Based on Your Meal Plan:**")
+    
+    if is_high_risk or is_high_glucose:
+        shopping_list = [
+            "🥬 **Vegetables:** Spinach, broccoli, cauliflower, zucchini, bell peppers",
+            "🥩 **Proteins:** Salmon, chicken breast, lean beef, eggs, tofu",
+            "🥜 **Healthy Fats:** Avocados, almonds, olive oil, walnuts",
+            "🧀 **Dairy:** Greek yogurt, cottage cheese, low-fat cheese",
+            "🌿 **Herbs & Spices:** Fresh herbs, garlic, ginger, turmeric",
+            "🥤 **Beverages:** Herbal teas, sparkling water, unsweetened almond milk"
+        ]
+    else:
+        shopping_list = [
+            "🥬 **Vegetables:** Mixed greens, sweet potatoes, carrots, tomatoes",
+            "🍚 **Whole Grains:** Quinoa, brown rice, oats, whole wheat pasta",
+            "🥩 **Proteins:** Fish, poultry, legumes, nuts, seeds",
+            "🍓 **Fruits:** Berries, apples, citrus fruits",
+            "🥛 **Dairy:** Low-fat milk, yogurt, cheese",
+            "🫒 **Healthy Oils:** Olive oil, avocado oil, coconut oil"
+        ]
+    
+    for item in shopping_list:
+        st.write(f"• {item}")
+
 # FOOTER
 st.markdown("---")
 st.markdown("""
