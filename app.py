@@ -111,7 +111,7 @@ with col4:
 
 # DATASET STATISTICS
 with st.expander("📈 Detailed Dataset Statistics", expanded=False):
-    st.dataframe(df.describe(), use_container_width=True)
+    st.dataframe(df.describe(), width='stretch')
 
 
 # X AND Y DATA
@@ -121,89 +121,66 @@ x_train, x_test, y_train, y_test = train_test_split(x,y, test_size = 0.2, random
 
 # ENHANCED USER INPUT FUNCTION
 def user_report():
-    st.sidebar.markdown("---")
-    
-    # Pregnancies
-    pregnancies = st.sidebar.slider(
-        '🤰 Pregnancies', 
-        min_value=0, max_value=17, value=3,
-        help="Number of times pregnant"
-    )
-    
-    # Glucose
-    glucose = st.sidebar.slider(
-        '🍬 Glucose Level (mg/dL)', 
-        min_value=0, max_value=200, value=120,
-        help="Blood glucose concentration (normal: 70-140 mg/dL)"
-    )
-    
-    # Blood Pressure
-    bp = st.sidebar.slider(
-        '💓 Blood Pressure (mmHg)', 
-        min_value=0, max_value=122, value=70,
-        help="Systolic blood pressure (normal: 90-120 mmHg)"
-    )
-    
-    # Skin Thickness
-    skinthickness = st.sidebar.slider(
-        '📏 Skin Thickness (mm)', 
-        min_value=0, max_value=100, value=20,
-        help="Triceps skin fold thickness"
-    )
-    
-    # Insulin
-    insulin = st.sidebar.slider(
-        '💉 Insulin Level (μU/mL)', 
-        min_value=0, max_value=846, value=79,
-        help="Serum insulin level"
-    )
-    
-    # BMI
-    bmi = st.sidebar.slider(
-        '⚖️ BMI (kg/m²)', 
-        min_value=0.0, max_value=67.0, value=20.0, step=0.1,
-        help="Body Mass Index (normal: 18.5-24.9)"
-    )
-    
-    # Diabetes Pedigree Function
-    dpf = st.sidebar.slider(
-        '🧬 Diabetes Pedigree Function', 
-        min_value=0.0, max_value=2.4, value=0.47, step=0.01,
-        help="Genetic predisposition to diabetes"
-    )
-    
-    # Age
-    age = st.sidebar.slider(
-        '🎂 Age (years)', 
-        min_value=21, max_value=88, value=33,
-        help="Patient age in years"
-    )
-    
-    # Health status indicators
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 🎯 Health Indicators")
-    
-    # BMI category
-    if bmi < 18.5:
-        bmi_status = "🔵 Underweight"
-    elif bmi < 25:
-        bmi_status = "🟢 Normal"
-    elif bmi < 30:
-        bmi_status = "🟡 Overweight"
-    else:
-        bmi_status = "🔴 Obese"
-    st.sidebar.write(f"BMI Category: {bmi_status}")
-    
-    # Glucose status
-    if glucose < 70:
-        glucose_status = "🔵 Low"
-    elif glucose <= 140:
-        glucose_status = "🟢 Normal"
-    elif glucose <= 199:
-        glucose_status = "🟡 Pre-diabetic"
-    else:
-        glucose_status = "🔴 Diabetic"
-    st.sidebar.write(f"Glucose Level: {glucose_status}")
+    # Collect inputs inside a sidebar form so the sidebar acts as the first "page"
+    with st.sidebar.form(key="user_input_form"):
+        st.markdown("---")
+
+        pregnancies = st.slider('🤰 Pregnancies', min_value=0, max_value=17, value=3,
+                                help="Number of times pregnant")
+
+        glucose = st.slider('🍬 Glucose Level (mg/dL)', min_value=0, max_value=200, value=120,
+                            help="Blood glucose concentration (normal: 70-140 mg/dL)")
+
+        bp = st.slider('💓 Blood Pressure (mmHg)', min_value=0, max_value=122, value=70,
+                       help="Systolic blood pressure (normal: 90-120 mmHg)")
+
+        skinthickness = st.slider('📏 Skin Thickness (mm)', min_value=0, max_value=100, value=20,
+                                  help="Triceps skin fold thickness")
+
+        insulin = st.slider('💉 Insulin Level (μU/mL)', min_value=0, max_value=846, value=79,
+                            help="Serum insulin level")
+
+        bmi = st.slider('⚖️ BMI (kg/m²)', min_value=0.0, max_value=67.0, value=20.0, step=0.1,
+                        help="Body Mass Index (normal: 18.5-24.9)")
+
+        dpf = st.slider('🧬 Diabetes Pedigree Function', min_value=0.0, max_value=2.4, value=0.47, step=0.01,
+                        help="Genetic predisposition to diabetes")
+
+        age = st.slider('🎂 Age (years)', min_value=21, max_value=88, value=33,
+                        help="Patient age in years")
+
+        st.markdown("---")
+        location = st.selectbox('🌍 Select Your Region', [
+            'India (South)', 'India (North)', 'India (East)', 'India (West)',
+            'USA', 'UK', 'Europe', 'Middle East', 'China', 'Japan', 'Other'
+        ], help="Choose your region to get local meal suggestions")
+
+        st.markdown("---")
+        st.markdown("### 🎯 Health Indicators")
+
+        # BMI category
+        if bmi < 18.5:
+            bmi_status = "🔵 Underweight"
+        elif bmi < 25:
+            bmi_status = "🟢 Normal"
+        elif bmi < 30:
+            bmi_status = "🟡 Overweight"
+        else:
+            bmi_status = "🔴 Obese"
+        st.write(f"BMI Category: {bmi_status}")
+
+        # Glucose status
+        if glucose < 70:
+            glucose_status = "🔵 Low"
+        elif glucose <= 140:
+            glucose_status = "🟢 Normal"
+        elif glucose <= 199:
+            glucose_status = "🟡 Pre-diabetic"
+        else:
+            glucose_status = "🔴 Diabetic"
+        st.write(f"Glucose Level: {glucose_status}")
+
+        submit = st.form_submit_button(label="🔍 Analyze Patient")
 
     user_report_data = {
         'Pregnancies': pregnancies,
@@ -213,16 +190,22 @@ def user_report():
         'Insulin': insulin,
         'BMI': bmi,
         'DiabetesPedigreeFunction': dpf,
-        'Age': age
+        'Age': age,
+        'Location': location
     }
     report_data = pd.DataFrame(user_report_data, index=[0])
-    return report_data
+    return report_data, submit
 
 
 
 
 # PATIENT DATA INPUT
-user_data = user_report()
+user_data, submitted = user_report()
+
+if not submitted:
+    st.markdown('<h2 class="sub-header">👋 Please provide patient info in the sidebar</h2>', unsafe_allow_html=True)
+    st.info("Fill the inputs in the left sidebar and press the '🔍 Analyze Patient' button to view personalized results.")
+    st.stop()
 
 st.markdown('<h2 class="sub-header">👤 Current Patient Data</h2>', unsafe_allow_html=True)
 
@@ -249,9 +232,12 @@ with st.spinner("🔄 Training AI model and analyzing patient data..."):
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf.fit(x_train, y_train)
     
+    # Prepare user data for prediction (exclude Location column if present)
+    user_data_for_prediction = user_data.drop('Location', axis=1) if 'Location' in user_data.columns else user_data
+
     # Get prediction and probability
-    user_result = rf.predict(user_data)
-    user_probability = rf.predict_proba(user_data)
+    user_result = rf.predict(user_data_for_prediction)
+    user_probability = rf.predict_proba(user_data_for_prediction)
     
     # Model accuracy
     accuracy = accuracy_score(y_test, rf.predict(x_test))
@@ -315,7 +301,7 @@ with col2:
         height=300
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 # Model metrics
 col1, col2, col3 = st.columns(3)
@@ -340,31 +326,31 @@ tab1, tab2, tab3, tab4 = st.tabs(["🔄 Comparison Charts", "📊 Distribution A
 
 with tab1:
     st.markdown("### Patient vs Population Comparison")
-    
+
     # Create 2x2 grid of comparison charts
     col1, col2 = st.columns(2)
-    
+
     with col1:
         # Age vs Pregnancies
         fig1 = px.scatter(
-            df, x='Age', y='Pregnancies', 
+            df, x='Age', y='Pregnancies',
             color='Outcome',
             color_discrete_map={0: '#2E86AB', 1: '#E74C3C'},
             title='🤰 Pregnancies vs Age',
             labels={'Outcome': 'Diabetes Status'},
-            opacity=0.6
+            opacity=0.6,
         )
         fig1.add_scatter(
-            x=[user_data['Age'].iloc[0]], 
+            x=[user_data['Age'].iloc[0]],
             y=[user_data['Pregnancies'].iloc[0]],
             mode='markers',
             marker=dict(size=15, color=patient_color, symbol=patient_symbol, line=dict(width=2, color='white')),
             name='You',
-            showlegend=True
+            showlegend=True,
         )
         fig1.update_layout(height=400)
-        st.plotly_chart(fig1, use_container_width=True)
-        
+        st.plotly_chart(fig1, width='stretch')
+
         # Age vs Glucose
         fig2 = px.scatter(
             df, x='Age', y='Glucose',
@@ -372,19 +358,19 @@ with tab1:
             color_discrete_map={0: '#2E86AB', 1: '#E74C3C'},
             title='🍬 Glucose Level vs Age',
             labels={'Outcome': 'Diabetes Status'},
-            opacity=0.6
+            opacity=0.6,
         )
         fig2.add_scatter(
-            x=[user_data['Age'].iloc[0]], 
+            x=[user_data['Age'].iloc[0]],
             y=[user_data['Glucose'].iloc[0]],
             mode='markers',
             marker=dict(size=15, color=patient_color, symbol=patient_symbol, line=dict(width=2, color='white')),
             name='You',
-            showlegend=True
+            showlegend=True,
         )
         fig2.update_layout(height=400)
-        st.plotly_chart(fig2, use_container_width=True)
-    
+        st.plotly_chart(fig2, width='stretch')
+
     with col2:
         # Age vs BMI
         fig3 = px.scatter(
@@ -393,19 +379,19 @@ with tab1:
             color_discrete_map={0: '#2E86AB', 1: '#E74C3C'},
             title='⚖️ BMI vs Age',
             labels={'Outcome': 'Diabetes Status'},
-            opacity=0.6
+            opacity=0.6,
         )
         fig3.add_scatter(
-            x=[user_data['Age'].iloc[0]], 
+            x=[user_data['Age'].iloc[0]],
             y=[user_data['BMI'].iloc[0]],
             mode='markers',
             marker=dict(size=15, color=patient_color, symbol=patient_symbol, line=dict(width=2, color='white')),
             name='You',
-            showlegend=True
+            showlegend=True,
         )
         fig3.update_layout(height=400)
-        st.plotly_chart(fig3, use_container_width=True)
-        
+        st.plotly_chart(fig3, width='stretch')
+
         # Age vs Blood Pressure
         fig4 = px.scatter(
             df, x='Age', y='BloodPressure',
@@ -413,18 +399,18 @@ with tab1:
             color_discrete_map={0: '#2E86AB', 1: '#E74C3C'},
             title='💓 Blood Pressure vs Age',
             labels={'Outcome': 'Diabetes Status'},
-            opacity=0.6
+            opacity=0.6,
         )
         fig4.add_scatter(
-            x=[user_data['Age'].iloc[0]], 
+            x=[user_data['Age'].iloc[0]],
             y=[user_data['BloodPressure'].iloc[0]],
             mode='markers',
             marker=dict(size=15, color=patient_color, symbol=patient_symbol, line=dict(width=2, color='white')),
             name='You',
-            showlegend=True
+            showlegend=True,
         )
         fig4.update_layout(height=400)
-        st.plotly_chart(fig4, use_container_width=True)
+        st.plotly_chart(fig4, width='stretch')
 
 with tab2:
     st.markdown("### Feature Distribution Analysis")
@@ -446,7 +432,7 @@ with tab2:
             line_color=patient_color,
             annotation_text="Your Level"
         )
-        st.plotly_chart(fig_hist1, use_container_width=True)
+        st.plotly_chart(fig_hist1, width='stretch')
         
         # BMI distribution
         fig_hist2 = px.histogram(
@@ -462,7 +448,7 @@ with tab2:
             line_color=patient_color,
             annotation_text="Your BMI"
         )
-        st.plotly_chart(fig_hist2, use_container_width=True)
+        st.plotly_chart(fig_hist2, width='stretch')
     
     with col2:
         # Age distribution
@@ -479,7 +465,7 @@ with tab2:
             line_color=patient_color,
             annotation_text="Your Age"
         )
-        st.plotly_chart(fig_hist3, use_container_width=True)
+        st.plotly_chart(fig_hist3, width='stretch')
         
         # Insulin distribution
         fig_hist4 = px.histogram(
@@ -495,7 +481,7 @@ with tab2:
             line_color=patient_color,
             annotation_text="Your Level"
         )
-        st.plotly_chart(fig_hist4, use_container_width=True)
+        st.plotly_chart(fig_hist4, width='stretch')
 
 with tab3:
     st.markdown("### Risk Factor Analysis")
@@ -512,7 +498,7 @@ with tab3:
         color_continuous_scale='viridis'
     )
     fig_importance.update_layout(height=400, showlegend=False)
-    st.plotly_chart(fig_importance, use_container_width=True)
+    st.plotly_chart(fig_importance, width='stretch')
     
     # Patient risk assessment
     st.markdown("### Your Risk Assessment")
@@ -554,7 +540,7 @@ with tab3:
         height=500
     )
     
-    st.plotly_chart(fig_radar, use_container_width=True)
+    st.plotly_chart(fig_radar, width='stretch')
 
 with tab4:
     st.markdown("### Feature Correlation Analysis")
@@ -569,7 +555,7 @@ with tab4:
         aspect='auto'
     )
     fig_corr.update_layout(height=600)
-    st.plotly_chart(fig_corr, use_container_width=True)
+    st.plotly_chart(fig_corr, width='stretch')
     
     # Key correlations
     st.markdown("### Key Insights")
