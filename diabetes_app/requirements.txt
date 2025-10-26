@@ -1,0 +1,10 @@
+streamlit>=1.20
+streamlit-lottie
+streamlit-extras
+plotly
+pandas
+numpy
+scikit-learn
+joblib
+Pillow
+seaborn==0.13.2

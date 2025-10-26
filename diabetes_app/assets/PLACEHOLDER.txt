@@ -1,0 +1,9 @@
+Place Lottie JSON files or icons here. Use streamlit_lottie.st_lottie to load animations from this folder or from a URL.
+Example usage:
+from pathlib import Path
+from streamlit_lottie import st_lottie
+import json
+
+with open(Path(__file__).parent / 'assets' / 'doctor.json') as f:
+    lottie_json = json.load(f)
+st_lottie(lottie_json, height=250)
