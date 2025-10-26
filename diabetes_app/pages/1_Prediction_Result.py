@@ -41,6 +41,42 @@ st.set_page_config(
 if CSS_PATH.exists():
     with open(CSS_PATH) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+else:
+    st.error(f"CSS not found: {CSS_PATH}")
+
+# Dark mode state
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+# Enhanced Sidebar
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align: center; padding: 1rem 0 2rem 0;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">📊</div>
+        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Analysis</h2>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; opacity: 0.8;">Your Health Report</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown("### 🎨 Appearance")
+    theme_label = "🌙 Dark Mode" if not st.session_state.dark_mode else "☀️ Light Mode"
+    if st.button(theme_label, use_container_width=True, key="theme_toggle"):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        st.rerun()
+    
+    st.markdown("---")
+    st.markdown("### 🏠 Quick Actions")
+    if st.button("⬅️ Back to Home", use_container_width=True):
+        switch_page("Home")
+    if st.button("🥗 Diet Plan", use_container_width=True):
+        switch_page("2_Diet_Recommendations")
+
+# Apply dark mode
+if st.session_state.dark_mode:
+    st.markdown('<script>document.documentElement.setAttribute("data-theme", "dark");</script>', unsafe_allow_html=True)
+else:
+    st.markdown('<script>document.documentElement.setAttribute("data-theme", "light");</script>', unsafe_allow_html=True)
 
 # Hero Section
 st.markdown("""
